@@ -2,16 +2,20 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>포켓몬 태그스타 서포터</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>포켓몬 태그스타 서포터 PRO</title>
   <style>
     :root {
-      --bg: #0f172a;
+      --bg: #0b0f19;
       --card-bg: #1e293b;
-      --primary: #fbbf24;
+      --card-inner: #0f172a;
+      --accent: #f59e0b;
+      --accent-glow: rgba(245, 158, 11, 0.3);
       --text: #f8fafc;
       --text-muted: #94a3b8;
+      --border: #334155;
     }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, sans-serif;
@@ -19,7 +23,7 @@
       color: var(--text);
       display: flex;
       justify-content: center;
-      padding: 16px;
+      padding: 12px;
     }
     .container {
       width: 100%;
@@ -27,56 +31,118 @@
     }
     header {
       text-align: center;
-      margin-bottom: 20px;
+      margin: 10px 0 16px;
     }
     h1 {
       font-size: 1.4rem;
       margin: 0;
-      color: var(--primary);
+      color: var(--accent);
+      text-shadow: 0 0 12px var(--accent-glow);
     }
     p.sub {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
-      margin-top: 4px;
+      margin: 4px 0 0;
     }
     .card {
       background: var(--card-bg);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
-    label {
-      font-size: 0.9rem;
-      font-weight: 600;
-      display: block;
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    /* 검색창 & 필터 */
+    .search-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--card-inner);
+      color: #fff;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+      outline: none;
       margin-bottom: 8px;
     }
-    select {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      background: #334155;
-      color: #fff;
-      border: 1px solid #475569;
-      font-size: 1rem;
-      outline: none;
+    .search-input:focus {
+      border-color: var(--accent);
     }
-    .boss-preview {
-      margin-top: 12px;
+
+    /* 보스 타일 */
+    .boss-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+    }
+    .boss-scroll::-webkit-scrollbar { display: none; }
+    .boss-chip {
+      flex: 0 0 76px;
+      background: var(--card-inner);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .boss-chip.active {
+      border-color: var(--accent);
+      background: #27272a;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+    .boss-chip img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+    .boss-chip .chip-name {
+      font-size: 0.72rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 4px;
+    }
+
+    /* 보스 상태 정보창 */
+    .boss-status {
+      background: var(--card-inner);
+      border-radius: 12px;
+      padding: 12px;
       display: flex;
       align-items: center;
       gap: 12px;
+      margin-top: 10px;
     }
+    .boss-status img {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+    }
+    .boss-details {
+      flex: 1;
+    }
+
+    /* 타입 배지 */
     .type-badge {
       display: inline-block;
-      padding: 4px 8px;
+      padding: 2px 6px;
       border-radius: 6px;
-      font-size: 0.8rem;
+      font-size: 0.72rem;
       font-weight: bold;
       color: #fff;
     }
-    /* 타입 색상 */
     .type-불꽃 { background: #ef4444; }
     .type-물 { background: #3b82f6; }
     .type-풀 { background: #22c55e; }
@@ -96,37 +162,135 @@
     .type-페어리 { background: #f472b6; }
     .type-노말 { background: #9ca3af; }
 
-    .recommend-item {
+    /* 토글 스위치 */
+    .toggle-wrap {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid #334155;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
     }
-    .recommend-item:last-child {
-      border-bottom: none;
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
     }
-    .rec-info {
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--border);
+      border-radius: 22px;
+      transition: .3s;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .3s;
+    }
+    input:checked + .slider { background-color: var(--accent); }
+    input:checked + .slider:before { transform: translateX(18px); }
+
+    /* 추천 리스트 */
+    .party-tag {
+      background: #dc2626;
+      color: #fff;
+      font-size: 0.65rem;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-weight: bold;
+      margin-right: 4px;
+    }
+    .rec-item {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 8px;
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .rec-item.top-pick {
+      border-color: var(--accent);
+      background: linear-gradient(145deg, #1e293b, #172033);
+    }
+    .rec-item img {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+    }
+    .rec-main { flex: 1; }
+    .rec-title {
+      font-weight: bold;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
       gap: 4px;
     }
-    .rec-name {
-      font-weight: bold;
-      font-size: 1rem;
+    .rec-badge-group {
+      margin-top: 4px;
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
     }
-    .rec-tag {
-      font-size: 0.75rem;
-      color: var(--primary);
+    .tag-badge {
+      font-size: 0.7rem;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-weight: 600;
     }
-    .score-badge {
-      background: #059669;
-      color: #fff;
-      font-size: 0.8rem;
-      padding: 4px 8px;
-      border-radius: 999px;
+    .badge-atk { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+    .badge-def { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+
+    /* 보유 태그 관리함 드롭다운 패널 */
+    details {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+    summary {
       font-weight: bold;
-      text-align: right;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .deck-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 12px;
+    }
+    .deck-item {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 2px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      opacity: 0.4;
+      transition: all 0.2s;
+    }
+    .deck-item.owned {
+      opacity: 1;
+      border-color: #22c55e;
+      background: rgba(34, 197, 94, 0.1);
+    }
+    .deck-item img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+    .deck-item span {
+      display: block;
+      font-size: 0.68rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   </style>
 </head>
@@ -134,26 +298,50 @@
 
 <div class="container">
   <header>
-    <h1>포켓몬 태그스타 서포터</h1>
-    <p class="sub">상대 보스를 고르면 최적의 태그를 추천합니다</p>
+    <h1>포켓몬 태그스타 서포터 PRO</h1>
+    <p class="sub">3마리 배틀 조합 & 실시간 상성 계산</p>
   </header>
 
+  <!-- 1. 보스 선택 영역 -->
   <div class="card">
-    <label for="bossSelect">잡고 싶은 보스 포켓몬 선택</label>
-    <select id="bossSelect" onchange="calculateAdvantage()">
-      <!-- JS에서 옵션 추가 -->
-    </select>
-    <div id="bossInfo" class="boss-preview"></div>
+    <div class="section-title">
+      <span>배틀 상대 보스 포켓몬</span>
+      <span id="bossCount" style="font-size: 0.75rem; color: var(--text-muted);"></span>
+    </div>
+    <input type="text" id="bossSearch" class="search-input" placeholder="보스 이름으로 검색 (예: 리자몽, 뮤츠)..." oninput="renderBossList()">
+    
+    <div class="boss-scroll" id="bossScroll"></div>
+
+    <div class="boss-status" id="bossStatus">
+      <!-- JS 렌더링 -->
+    </div>
   </div>
 
+  <!-- 2. 추천 리스트 영역 -->
   <div class="card">
-    <label>추천 출전 태그</label>
+    <div class="section-title">
+      <span>추천 출전 포켓몬 (1~3번 타자 추천)</span>
+      <div class="toggle-wrap">
+        <span>내 태그만</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="onlyMyDeckToggle" onchange="calculateAdvantage()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
     <div id="recommendList"></div>
   </div>
+
+  <!-- 3. 내 태그 보관함 관리 -->
+  <details>
+    <summary>📦 내 보유 태그 등록 / 관리 (<span id="myDeckCount">0</span>마리 보유 중)</summary>
+    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 6px 0 0;">터치하여 내가 가진 태그를 켜고 끌 수 있습니다. (자동 저장)</p>
+    <div class="deck-grid" id="deckGrid"></div>
+  </details>
 </div>
 
 <script>
-// 1. 타입 상성표 (공격 타입 -> 수비 타입에 주는 배율)
+// 타입 상성표
 const typeChart = {
   "노말": { "바위": 0.5, "고스트": 0, "강철": 0.5 },
   "불꽃": { "불꽃": 0.5, "물": 0.5, "풀": 2, "얼음": 2, "벌레": 2, "바위": 0.5, "드래곤": 0.5, "강철": 2 },
@@ -175,25 +363,36 @@ const typeChart = {
   "페어리": { "불꽃": 0.5, "격투": 2, "독": 0.5, "드래곤": 2, "악": 2, "강철": 0.5 }
 };
 
-// 2. 태그스타 주요 포켓몬 DB (1탄/핵심 포켓몬 예시)
+// 공식 도감 번호 매핑 (이미지 자동 로드용)
 const tagDatabase = [
-  { id: "1-001", star: 6, name: "자시안", types: ["페어리", "강철"], moveType: "강철", moveName: "거수참" },
-  { id: "1-002", star: 6, name: "자마젠타", types: ["격투", "강철"], moveType: "강철", moveName: "거수탄" },
-  { id: "1-003", star: 6, name: "가이오가", types: ["물"], moveType: "물", moveName: "하이드로펌프" },
-  { id: "1-004", star: 6, name: "그란돈", types: ["땅"], moveType: "땅", moveName: "지진" },
-  { id: "1-005", star: 6, name: "레쿠쟈", types: ["드래곤", "비행"], moveType: "드래곤", moveName: "유성군" },
-  { id: "1-006", star: 6, name: "이상해꽃", types: ["풀", "독"], moveType: "풀", moveName: "리프스톰" },
-  { id: "1-007", star: 6, name: "리자몽", types: ["불꽃", "비행"], moveType: "불꽃", moveName: "화염방사" },
-  { id: "1-008", star: 6, name: "거북왕", types: ["물"], moveType: "물", moveName: "하이드로펌프" },
-  { id: "1-009", star: 6, name: "알로라 나인테일", types: ["얼음", "페어리"], moveType: "얼음", moveName: "눈보라" },
-  { id: "1-010", star: 6, name: "피카츄", types: ["전기"], moveType: "전기", moveName: "10만볼트" },
-  { id: "1-011", star: 5, name: "고릴타", types: ["풀"], moveType: "풀", moveName: "드럼어택" },
-  { id: "1-012", star: 5, name: "에이스번", types: ["불꽃"], moveType: "불꽃", moveName: "화염볼" },
-  { id: "1-013", star: 5, name: "인텔리레온", types: ["물"], moveType: "물", moveName: "노려쏘기" },
-  { id: "1-014", star: 5, name: "창파나이트", types: ["격투"], moveType: "격투", moveName: "스타어설트" }
+  { id: "1", dex: 888, star: 6, name: "자시안", types: ["페어리", "강철"], moveType: "강철", moveName: "거수참" },
+  { id: "2", dex: 889, star: 6, name: "자마젠타", types: ["격투", "강철"], moveType: "강철", moveName: "거수탄" },
+  { id: "3", dex: 382, star: 6, name: "가이오가", types: ["물"], moveType: "물", moveName: "근원의파동" },
+  { id: "4", dex: 383, star: 6, name: "그란돈", types: ["땅"], moveType: "땅", moveName: "단애의칼" },
+  { id: "5", dex: 384, star: 6, name: "레쿠쟈", types: ["드래곤", "비행"], moveType: "드래곤", moveName: "화룡점정" },
+  { id: "6", dex: 150, star: 6, name: "뮤츠", types: ["에스퍼"], moveType: "에스퍼", moveName: "사이코키네시스" },
+  { id: "7", dex: 6, star: 6, name: "리자몽", types: ["불꽃", "비행"], moveType: "불꽃", moveName: "화염방사" },
+  { id: "8", dex: 3, star: 6, name: "이상해꽃", types: ["풀", "독"], moveType: "풀", moveName: "솔라빔" },
+  { id: "9", dex: 9, star: 6, name: "거북왕", types: ["물"], moveType: "물", moveName: "하이드로캐논" },
+  { id: "10", dex: 25, star: 6, name: "피카츄", types: ["전기"], moveType: "전기", moveName: "10만볼트" },
+  { id: "11", dex: 448, star: 6, name: "루카리오", types: ["격투", "강철"], moveType: "격투", moveName: "파동탄" },
+  { id: "12", dex: 445, star: 6, name: "한카리아스", types: ["드래곤", "땅"], moveType: "땅", moveName: "지진" },
+  { id: "13", dex: 812, star: 5, name: "고릴타", types: ["풀"], moveType: "풀", moveName: "드럼어택" },
+  { id: "14", dex: 815, star: 5, name: "에이스번", types: ["불꽃"], moveType: "불꽃", moveName: "화염볼" },
+  { id: "15", dex: 818, star: 5, name: "인텔리레온", types: ["물"], moveType: "물", moveName: "노려쏘기" },
+  { id: "16", dex: 865, star: 5, name: "창파나이트", types: ["격투"], moveType: "격투", moveName: "스타어설트" },
+  { id: "17", dex: 282, star: 5, name: "가디안", types: ["에스퍼", "페어리"], moveType: "페어리", moveName: "문포스" },
+  { id: "18", dex: 94, star: 5, name: "팬텀", types: ["고스트", "독"], moveType: "고스트", moveName: "섀도볼" }
 ];
 
-// 상성 배율 구하기
+// 로컬 스토리지에서 내 보유 태그 불러오기 (기본값은 편의상 전부 소유)
+let myDeck = JSON.parse(localStorage.getItem("myTagDeck")) || tagDatabase.map(t => t.id);
+let currentBossId = tagDatabase[0].id;
+
+function getImgUrl(dex) {
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${dex}.png`;
+}
+
 function getMultiplier(attackType, defenseTypes) {
   let mult = 1.0;
   defenseTypes.forEach(def => {
@@ -204,73 +403,140 @@ function getMultiplier(attackType, defenseTypes) {
   return mult;
 }
 
-// 셀렉트 박스 세팅
-const bossSelect = document.getElementById("bossSelect");
-tagDatabase.forEach((p, idx) => {
-  const opt = document.createElement("option");
-  opt.value = idx;
-  opt.textContent = `★${p.star} ${p.name} (${p.types.join('/')})`;
-  bossSelect.appendChild(opt);
-});
+// 1. 보스 목록 렌더링
+function renderBossList() {
+  const query = document.getElementById("bossSearch").value.trim().toLowerCase();
+  const scrollBox = document.getElementById("bossScroll");
+  scrollBox.innerHTML = "";
 
-// 추천 알고리즘 계산
-function calculateAdvantage() {
-  const boss = tagDatabase[bossSelect.value];
-  
-  // 보스 정보 표시
-  const bossInfo = document.getElementById("bossInfo");
-  bossInfo.innerHTML = `
-    <span>타입:</span>
-    ${boss.types.map(t => `<span class="type-badge type-${t}">${t}</span>`).join(' ')}
-    <span style="font-size:0.85rem; color: #94a3b8; margin-left: 8px;">주 기술: ${boss.moveName} (${boss.moveType})</span>
-  `;
+  const filtered = tagDatabase.filter(p => p.name.toLowerCase().includes(query));
+  document.getElementById("bossCount").innerText = `${filtered.length}마리`;
 
-  // 내 포켓몬 점수 계산
-  const scoredList = tagDatabase.map(myTag => {
-    // 1. 내가 때릴 때 배율 (보스 방어 타입 기준)
-    const attackMult = getMultiplier(myTag.moveType, boss.types);
-    
-    // 2. 상대 기술을 내가 맞을 때 배율 (내 방어 타입 기준)
-    const defenseMult = getMultiplier(boss.moveType, myTag.types);
-
-    // 점수 공식: 공격 배율 높을수록(+), 받는 피해 적을수록(+)
-    // 공격 2배(2.0), 보스 공격 반감(0.5)일 때 최고점
-    let score = (attackMult * 2.0) + (2.0 / (defenseMult || 0.25));
-    if (myTag.star === 6) score += 0.5; // 슈퍼스타 가산점
-
-    return {
-      ...myTag,
-      attackMult,
-      defenseMult,
-      score
+  filtered.forEach(p => {
+    const chip = document.createElement("div");
+    chip.className = `boss-chip ${p.id === currentBossId ? 'active' : ''}`;
+    chip.onclick = () => {
+      currentBossId = p.id;
+      renderBossList();
+      calculateAdvantage();
     };
+    chip.innerHTML = `
+      <img src="${getImgUrl(p.dex)}" loading="lazy" alt="${p.name}">
+      <div class="chip-name">${p.name}</div>
+    `;
+    scrollBox.appendChild(chip);
   });
 
-  // 점수 순 정렬
-  scoredList.sort((a, b) => b.score - a.score);
+  renderBossStatus();
+}
 
-  // 상위 추천 포켓몬 렌더링
+// 2. 선택된 보스 상태 카드
+function renderBossStatus() {
+  const boss = tagDatabase.find(p => p.id === currentBossId) || tagDatabase[0];
+  const box = document.getElementById("bossStatus");
+  box.innerHTML = `
+    <img src="${getImgUrl(boss.dex)}" alt="${boss.name}">
+    <div class="boss-details">
+      <div style="font-weight:bold; font-size:1.05rem;">★${boss.star} ${boss.name}</div>
+      <div style="margin: 4px 0;">
+        ${boss.types.map(t => `<span class="type-badge type-${t}">${t}</span>`).join(' ')}
+      </div>
+      <div style="font-size:0.78rem; color:var(--text-muted);">
+        사용 기술: <span style="color:#fff;">${boss.moveName}</span> (${boss.moveType}타입)
+      </div>
+    </div>
+  `;
+}
+
+// 3. 추천 계산 로직
+function calculateAdvantage() {
+  const boss = tagDatabase.find(p => p.id === currentBossId) || tagDatabase[0];
+  const onlyMyDeck = document.getElementById("onlyMyDeckToggle").checked;
+
+  let candidates = tagDatabase.filter(p => p.id !== boss.id);
+  if (onlyMyDeck) {
+    candidates = candidates.filter(p => myDeck.includes(p.id));
+  }
+
+  const scored = candidates.map(my => {
+    const atkMult = getMultiplier(my.moveType, boss.types);
+    const defMult = getMultiplier(boss.moveType, my.types);
+
+    // 점수 공식: 공격 배율 가중치 + 보스 공격 회피/경감율 가중치 + 스타 등급 가산점
+    let score = (atkMult * 3.0) + (2.0 / (defMult || 0.25)) + (my.star * 0.4);
+
+    return { ...my, atkMult, defMult, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
   const recList = document.getElementById("recommendList");
   recList.innerHTML = "";
-  
-  scoredList.slice(0, 5).forEach(item => {
-    const atkEffect = item.attackMult >= 2 ? "매우 유리(2배)" : item.attackMult === 1 ? "보통" : "비효율";
-    const defEffect = item.defenseMult <= 0.5 ? "방어 우수(반감)" : item.defenseMult === 1 ? "보통" : "피해 주의";
 
+  if (scored.length === 0) {
+    recList.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.85rem;">보유 태그 중 출전 가능한 포켓몬이 없습니다. 아래에서 태그를 추가해 주세요!</div>`;
+    return;
+  }
+
+  scored.slice(0, 5).forEach((p, idx) => {
+    const isTopPick = idx < 3; // 1~3번을 세트 파티로 강조
     const div = document.createElement("div");
-    div.classList.add("recommend-item");
+    div.className = `rec-item ${isTopPick ? 'top-pick' : ''}`;
+
+    const atkDesc = p.atkMult >= 2 ? "공격 2배! (극효과)" : p.atkMult === 1 ? "공격 보통" : "공격 비효율";
+    const defDesc = p.defMult <= 0.5 ? "상대 기술 반감 (단단함)" : p.defMult === 1 ? "피해 보통" : "상대 역상성 주의!";
+
     div.innerHTML = `
-      <div class="rec-info">
-        <div class="rec-name">★${item.star} ${item.name} <span class="type-badge type-${item.moveType}">${item.moveType}</span></div>
-        <div class="rec-tag">기술: ${item.moveName} · 공격: ${atkEffect} / 수비: ${defEffect}</div>
+      <img src="${getImgUrl(p.dex)}" alt="${p.name}">
+      <div class="rec-main">
+        <div class="rec-title">
+          ${isTopPick ? `<span class="party-tag">${idx + 1}번 타자</span>` : ''}
+          ★${p.star} ${p.name}
+          <span class="type-badge type-${p.moveType}" style="font-size:0.65rem;">${p.moveType}</span>
+        </div>
+        <div class="rec-badge-group">
+          <span class="tag-badge badge-atk">${atkDesc}</span>
+          <span class="tag-badge badge-def">${defDesc}</span>
+        </div>
       </div>
-      <div class="score-badge">추천도 ${Math.round(item.score * 10)}점</div>
     `;
     recList.appendChild(div);
   });
 }
 
-// 최초 실행
+// 4. 내 태그 보관함 렌더링
+function renderDeckManager() {
+  const grid = document.getElementById("deckGrid");
+  grid.innerHTML = "";
+  document.getElementById("myDeckCount").innerText = myDeck.length;
+
+  tagDatabase.forEach(p => {
+    const isOwned = myDeck.includes(p.id);
+    const item = document.createElement("div");
+    item.className = `deck-item ${isOwned ? 'owned' : ''}`;
+    item.onclick = () => toggleDeckItem(p.id);
+    item.innerHTML = `
+      <img src="${getImgUrl(p.dex)}" alt="${p.name}">
+      <span>★${p.star} ${p.name}</span>
+    `;
+    grid.appendChild(item);
+  });
+}
+
+function toggleDeckItem(id) {
+  if (myDeck.includes(id)) {
+    myDeck = myDeck.filter(itemId => itemId !== id);
+  } else {
+    myDeck.push(id);
+  }
+  localStorage.setItem("myTagDeck", JSON.stringify(myDeck));
+  renderDeckManager();
+  calculateAdvantage();
+}
+
+// 초기화 실행
+renderBossList();
+renderDeckManager();
 calculateAdvantage();
 </script>
 </body>
