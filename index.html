@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>한국 포켓몬 태그스타 상성기</title>
+  <title>한국 포켓몬 태그스타 상성기 PRO</title>
   <style>
     :root {
       --bg: #0b0f19;
@@ -215,6 +215,14 @@
       border-radius: 4px;
       font-weight: bold;
     }
+    .atk-stat-badge {
+      background: #e11d48;
+      color: #fff;
+      font-size: 0.65rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
     .rec-badge-group {
       margin-top: 3px;
       display: flex;
@@ -260,7 +268,7 @@
     input:checked + .slider { background-color: var(--accent); }
     input:checked + .slider:before { transform: translateX(18px); }
 
-    /* 보유 태그 관리 드롭다운 */
+    /* 보관함 */
     details {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -306,6 +314,11 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .deck-item .atk-sub {
+      font-size: 0.58rem;
+      color: #fda4af;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -313,7 +326,7 @@
 <div class="container">
   <header>
     <h1>포켓몬 태그스타 상성기 PRO</h1>
-    <p class="sub">1탄·2탄 (★6 슈퍼스타 & ★5 스타 전 50종)</p>
+    <p class="sub">공격력 스탯 반영 & 1탄·2탄 50종 지원</p>
   </header>
 
   <!-- 보스 선택 카드 -->
@@ -323,7 +336,7 @@
       <span id="bossCount" style="font-size: 0.72rem; color: var(--text-muted);"></span>
     </div>
 
-    <!-- 탄 & 성급 2중 필터 -->
+    <!-- 탄 & 성급 필터 -->
     <div class="filter-group">
       <div class="btn-row">
         <button class="tab-btn active" id="btnSeriesAll" onclick="setSeries('all')">전체 탄</button>
@@ -337,7 +350,7 @@
       </div>
     </div>
 
-    <input type="text" id="bossSearch" class="search-input" placeholder="이름으로 찾기 (예: 팬텀, 피카츄)..." oninput="renderBossList()">
+    <input type="text" id="bossSearch" class="search-input" placeholder="이름으로 찾기 (예: 팬텀, 미라이돈)..." oninput="renderBossList()">
     <div class="boss-scroll" id="bossScroll"></div>
     <div class="boss-status" id="bossStatus"></div>
   </div>
@@ -345,7 +358,7 @@
   <!-- 추천 출전 카드 -->
   <div class="card">
     <div class="section-title">
-      <span>추천 출전 태그 (1~3번 추천)</span>
+      <span>추천 출전 태그 (공격력 우선 정렬)</span>
       <div class="toggle-wrap">
         <span>내 태그만</span>
         <label class="toggle-switch">
@@ -391,72 +404,72 @@ const typeChart = {
   "페어리": { "불꽃": 0.5, "격투": 2, "독": 0.5, "드래곤": 2, "악": 2, "강철": 0.5 }
 };
 
-// 1탄, 2탄 전체 50종 데이터베이스 (이미지 기준 정확 반영)
+// 이미지에 표시된 공식 공격력(atk) 정확 반영 (총 50종)
 const tagDatabase = [
   // ================= 1탄 ★6 (10종) =================
-  { tagNo: "1-1-001", series: "1", star: 6, dex: 150, name: "뮤츠", types: ["에스퍼"], moveType: "에스퍼" },
-  { tagNo: "1-1-002", series: "1", star: 6, dex: 151, name: "뮤", types: ["에스퍼"], moveType: "에스퍼" },
-  { tagNo: "1-1-003", series: "1", star: 6, dex: 888, name: "자시안", types: ["페어리", "강철"], moveType: "강철" },
-  { tagNo: "1-1-004", series: "1", star: 6, dex: 889, name: "자마젠타", types: ["격투", "강철"], moveType: "강철" },
-  { tagNo: "1-1-005", series: "1", star: 6, dex: 248, name: "마기라스", types: ["바위", "악"], moveType: "바위" },
-  { tagNo: "1-1-006", series: "1", star: 6, dex: 376, name: "메타그로스", types: ["강철", "에스퍼"], moveType: "강철" },
-  { tagNo: "1-1-007", series: "1", star: 6, dex: 1008, name: "미라이돈", types: ["전기", "드래곤"], moveType: "전기" },
-  { tagNo: "1-1-008", series: "1", star: 6, dex: 3, name: "이상해꽃", types: ["풀", "독"], moveType: "풀" },
-  { tagNo: "1-1-009", series: "1", star: 6, dex: 6, name: "리자몽", types: ["불꽃", "비행"], moveType: "불꽃" },
-  { tagNo: "1-1-010", series: "1", star: 6, dex: 9, name: "거북왕", types: ["물"], moveType: "물" },
+  { tagNo: "1-1-001", series: "1", star: 6, dex: 150, name: "뮤츠", atk: 158, types: ["에스퍼"], moveType: "에스퍼" },
+  { tagNo: "1-1-002", series: "1", star: 6, dex: 151, name: "뮤", atk: 142, types: ["에스퍼"], moveType: "에스퍼" },
+  { tagNo: "1-1-003", series: "1", star: 6, dex: 888, name: "자시안", atk: 162, types: ["페어리", "강철"], moveType: "강철" },
+  { tagNo: "1-1-004", series: "1", star: 6, dex: 889, name: "자마젠타", atk: 162, types: ["격투", "강철"], moveType: "강철" },
+  { tagNo: "1-1-005", series: "1", star: 6, dex: 248, name: "마기라스", atk: 144, types: ["바위", "악"], moveType: "바위" },
+  { tagNo: "1-1-006", series: "1", star: 6, dex: 376, name: "메타그로스", atk: 144, types: ["강철", "에스퍼"], moveType: "강철" },
+  { tagNo: "1-1-007", series: "1", star: 6, dex: 1008, name: "미라이돈", atk: 162, types: ["전기", "드래곤"], moveType: "전기" },
+  { tagNo: "1-1-008", series: "1", star: 6, dex: 3, name: "이상해꽃", atk: 122, types: ["풀", "독"], moveType: "풀" },
+  { tagNo: "1-1-009", series: "1", star: 6, dex: 6, name: "리자몽", atk: 124, types: ["불꽃", "비행"], moveType: "불꽃" },
+  { tagNo: "1-1-010", series: "1", star: 6, dex: 9, name: "거북왕", atk: 124, types: ["물"], moveType: "물" },
 
   // ================= 1탄 ★5 (15종) =================
-  { tagNo: "1-1-011", series: "1", star: 5, dex: 134, name: "샤미드", types: ["물"], moveType: "물" },
-  { tagNo: "1-1-012", series: "1", star: 5, dex: 136, name: "부스터", types: ["불꽃"], moveType: "불꽃" },
-  { tagNo: "1-1-013", series: "1", star: 5, dex: 197, name: "블래키", types: ["악"], moveType: "악" },
-  { tagNo: "1-1-014", series: "1", star: 5, dex: 471, name: "글레이시아", types: ["얼음"], moveType: "얼음" },
-  { tagNo: "1-1-015", series: "1", star: 5, dex: 18, name: "피죤투", types: ["노말", "비행"], moveType: "비행" },
-  { tagNo: "1-1-016", series: "1", star: 5, dex: 94, name: "팬텀", types: ["고스트", "독"], moveType: "고스트" },
-  { tagNo: "1-1-017", series: "1", star: 5, dex: 59, name: "윈디", types: ["불꽃"], moveType: "불꽃" },
-  { tagNo: "1-1-018", series: "1", star: 5, dex: 464, name: "거대코뿌리", types: ["땅", "바위"], moveType: "땅" },
-  { tagNo: "1-1-019", series: "1", star: 5, dex: 25, name: "피카츄", types: ["전기"], moveType: "전기" },
-  { tagNo: "1-1-020", series: "1", star: 5, dex: 330, name: "플라이곤", types: ["땅", "드래곤"], moveType: "땅" },
-  { tagNo: "1-1-021", series: "1", star: 5, dex: 812, name: "고릴타", types: ["풀"], moveType: "풀" },
-  { tagNo: "1-1-022", series: "1", star: 5, dex: 815, name: "에이스번", types: ["불꽃"], moveType: "불꽃" },
-  { tagNo: "1-1-023", series: "1", star: 5, dex: 818, name: "인텔리레온", types: ["물"], moveType: "물" },
-  { tagNo: "1-1-024", series: "1", star: 5, dex: 862, name: "가로막구리", types: ["악", "노말"], moveType: "악" },
-  { tagNo: "1-1-025", series: "1", star: 5, dex: 647, name: "케르디오", types: ["물", "격투"], moveType: "물" },
+  { tagNo: "1-1-011", series: "1", star: 5, dex: 134, name: "샤미드", atk: 108, types: ["물"], moveType: "물" },
+  { tagNo: "1-1-012", series: "1", star: 5, dex: 136, name: "부스터", atk: 108, types: ["불꽃"], moveType: "불꽃" },
+  { tagNo: "1-1-013", series: "1", star: 5, dex: 197, name: "블래키", atk: 112, types: ["악"], moveType: "악" },
+  { tagNo: "1-1-014", series: "1", star: 5, dex: 471, name: "글레이시아", atk: 114, types: ["얼음"], moveType: "얼음" },
+  { tagNo: "1-1-015", series: "1", star: 5, dex: 18, name: "피죤투", atk: 108, types: ["노말", "비행"], moveType: "비행" },
+  { tagNo: "1-1-016", series: "1", star: 5, dex: 94, name: "팬텀", atk: 108, types: ["고스트", "독"], moveType: "고스트" },
+  { tagNo: "1-1-017", series: "1", star: 5, dex: 59, name: "윈디", atk: 114, types: ["불꽃"], moveType: "불꽃" },
+  { tagNo: "1-1-018", series: "1", star: 5, dex: 464, name: "거대코뿌리", atk: 110, types: ["땅", "바위"], moveType: "땅" },
+  { tagNo: "1-1-019", series: "1", star: 5, dex: 25, name: "피카츄", atk: 96, types: ["전기"], moveType: "전기" },
+  { tagNo: "1-1-020", series: "1", star: 5, dex: 330, name: "플라이곤", atk: 114, types: ["땅", "드래곤"], moveType: "땅" },
+  { tagNo: "1-1-021", series: "1", star: 5, dex: 812, name: "고릴타", atk: 108, types: ["풀"], moveType: "풀" },
+  { tagNo: "1-1-022", series: "1", star: 5, dex: 815, name: "에이스번", atk: 108, types: ["불꽃"], moveType: "불꽃" },
+  { tagNo: "1-1-023", series: "1", star: 5, dex: 818, name: "인텔리레온", atk: 108, types: ["물"], moveType: "물" },
+  { tagNo: "1-1-024", series: "1", star: 5, dex: 862, name: "가로막구리", atk: 112, types: ["악", "노말"], moveType: "악" },
+  { tagNo: "1-1-025", series: "1", star: 5, dex: 647, name: "케르디오", atk: 122, types: ["물", "격투"], moveType: "물" },
 
   // ================= 2탄 ★6 (10종) =================
-  { tagNo: "1-2-001", series: "2", star: 6, dex: 382, name: "가이오가", types: ["물"], moveType: "물" },
-  { tagNo: "1-2-002", series: "2", star: 6, dex: 383, name: "그란돈", types: ["땅"], moveType: "땅" },
-  { tagNo: "1-2-003", series: "2", star: 6, dex: 1007, name: "코라이돈", types: ["격투", "드래곤"], moveType: "격투" },
-  { tagNo: "1-2-004", series: "2", star: 6, dex: 25, name: "피카츄", types: ["전기"], moveType: "전기" },
-  { tagNo: "1-2-005", series: "2", star: 6, dex: 143, name: "잠만보", types: ["노말"], moveType: "노말" },
-  { tagNo: "1-2-006", series: "2", star: 6, dex: 784, name: "짜랑고우거", types: ["드래곤", "격투"], moveType: "드래곤" },
-  { tagNo: "1-2-007", series: "2", star: 6, dex: 282, name: "가디안", types: ["에스퍼", "페어리"], moveType: "페어리" },
-  { tagNo: "1-2-008", series: "2", star: 6, dex: 643, name: "레시라무", types: ["드래곤", "불꽃"], moveType: "불꽃" },
-  { tagNo: "1-2-009", series: "2", star: 6, dex: 644, name: "제크로무", types: ["드래곤", "전기"], moveType: "전기" },
-  { tagNo: "1-2-010", series: "2", star: 6, dex: 646, name: "큐레무", types: ["드래곤", "얼음"], moveType: "얼음" },
+  { tagNo: "1-2-001", series: "2", star: 6, dex: 382, name: "가이오가", atk: 152, types: ["물"], moveType: "물" },
+  { tagNo: "1-2-002", series: "2", star: 6, dex: 383, name: "그란돈", atk: 152, types: ["땅"], moveType: "땅" },
+  { tagNo: "1-2-003", series: "2", star: 6, dex: 1007, name: "코라이돈", atk: 162, types: ["격투", "드래곤"], moveType: "격투" },
+  { tagNo: "1-2-004", series: "2", star: 6, dex: 25, name: "피카츄", atk: 102, types: ["전기"], moveType: "전기" },
+  { tagNo: "1-2-005", series: "2", star: 6, dex: 143, name: "잠만보", atk: 124, types: ["노말"], moveType: "노말" },
+  { tagNo: "1-2-006", series: "2", star: 6, dex: 784, name: "짜랑고우거", types: ["드래곤", "격투"], atk: 144, moveType: "드래곤" },
+  { tagNo: "1-2-007", series: "2", star: 6, dex: 282, name: "가디안", atk: 124, types: ["에스퍼", "페어리"], moveType: "페어리" },
+  { tagNo: "1-2-008", series: "2", star: 6, dex: 643, name: "레시라무", atk: 162, types: ["드래곤", "불꽃"], moveType: "불꽃" },
+  { tagNo: "1-2-009", series: "2", star: 6, dex: 644, name: "제크로무", atk: 162, types: ["드래곤", "전기"], moveType: "전기" },
+  { tagNo: "1-2-010", series: "2", star: 6, dex: 646, name: "큐레무", atk: 156, types: ["드래곤", "얼음"], moveType: "얼음" },
 
   // ================= 2탄 ★5 (15종) =================
-  { tagNo: "1-2-011", series: "2", star: 5, dex: 135, name: "쥬피썬더", types: ["전기"], moveType: "전기" },
-  { tagNo: "1-2-012", series: "2", star: 5, dex: 196, name: "에브이", types: ["에스퍼"], moveType: "에스퍼" },
-  { tagNo: "1-2-013", series: "2", star: 5, dex: 470, name: "리피아", types: ["풀"], moveType: "풀" },
-  { tagNo: "1-2-014", series: "2", star: 5, dex: 700, name: "님피아", types: ["페어리"], moveType: "페어리" },
-  { tagNo: "1-2-015", series: "2", star: 5, dex: 448, name: "루카리오", types: ["격투", "강철"], moveType: "격투" },
-  { tagNo: "1-2-016", series: "2", star: 5, dex: 389, name: "토대부기", types: ["풀", "땅"], moveType: "풀" },
-  { tagNo: "1-2-017", series: "2", star: 5, dex: 392, name: "초염몽", types: ["불꽃", "격투"], moveType: "불꽃" },
-  { tagNo: "1-2-018", series: "2", star: 5, dex: 395, name: "엠페르트", types: ["물", "강철"], moveType: "물" },
-  { tagNo: "1-2-019", series: "2", star: 5, dex: 38, name: "알로라 나인테일", types: ["얼음", "페어리"], moveType: "얼음" },
-  { tagNo: "1-2-020", series: "2", star: 5, dex: 248, name: "마기라스", types: ["바위", "악"], moveType: "바위" },
-  { tagNo: "1-2-021", series: "2", star: 5, dex: 376, name: "메타그로스", types: ["강철", "에스퍼"], moveType: "강철" },
-  { tagNo: "1-2-022", series: "2", star: 5, dex: 841, name: "애프룡", types: ["풀", "드래곤"], moveType: "풀" },
-  { tagNo: "1-2-023", series: "2", star: 5, dex: 842, name: "단지래플", types: ["풀", "드래곤"], moveType: "풀" },
-  { tagNo: "1-2-024", series: "2", star: 5, dex: 869, name: "마휘핑", types: ["페어리"], moveType: "페어리" },
-  { tagNo: "1-2-025", series: "2", star: 5, dex: 834, name: "갈가부기", types: ["물", "바위"], moveType: "물" }
+  { tagNo: "1-2-011", series: "2", star: 5, dex: 135, name: "쥬피썬더", atk: 108, types: ["전기"], moveType: "전기" },
+  { tagNo: "1-2-012", series: "2", star: 5, dex: 196, name: "에브이", atk: 112, types: ["에스퍼"], moveType: "에스퍼" },
+  { tagNo: "1-2-013", series: "2", star: 5, dex: 470, name: "리피아", atk: 114, types: ["풀"], moveType: "풀" },
+  { tagNo: "1-2-014", series: "2", star: 5, dex: 700, name: "님피아", atk: 118, types: ["페어리"], moveType: "페어리" },
+  { tagNo: "1-2-015", series: "2", star: 5, dex: 448, name: "루카리오", atk: 118, types: ["격투", "강철"], moveType: "격투" },
+  { tagNo: "1-2-016", series: "2", star: 5, dex: 389, name: "토대부기", atk: 112, types: ["풀", "땅"], moveType: "풀" },
+  { tagNo: "1-2-017", series: "2", star: 5, dex: 392, name: "초염몽", atk: 114, types: ["불꽃", "격투"], moveType: "불꽃" },
+  { tagNo: "1-2-018", series: "2", star: 5, dex: 395, name: "엠페르트", atk: 114, types: ["물", "강철"], moveType: "물" },
+  { tagNo: "1-2-019", series: "2", star: 5, dex: 38, name: "알로라 나인테일", atk: 122, types: ["얼음", "페어리"], moveType: "얼음" },
+  { tagNo: "1-2-020", series: "2", star: 5, dex: 248, name: "마기라스", atk: 122, types: ["바위", "악"], moveType: "바위" },
+  { tagNo: "1-2-021", series: "2", star: 5, dex: 376, name: "메타그로스", atk: 122, types: ["강철", "에스퍼"], moveType: "강철" },
+  { tagNo: "1-2-022", series: "2", star: 5, dex: 841, name: "애프룡", atk: 110, types: ["풀", "드래곤"], moveType: "풀" },
+  { tagNo: "1-2-023", series: "2", star: 5, dex: 842, name: "단지래플", atk: 110, types: ["풀", "드래곤"], moveType: "풀" },
+  { tagNo: "1-2-024", series: "2", star: 5, dex: 869, name: "마휘핑", atk: 112, types: ["페어리"], moveType: "페어리" },
+  { tagNo: "1-2-025", series: "2", star: 5, dex: 834, name: "갈가부기", atk: 104, types: ["물", "바위"], moveType: "물" }
 ];
 
 let selectedSeries = "all";
 let selectedStar = "all";
 let selectedDeckFilter = "all";
 let currentBossTagNo = tagDatabase[0].tagNo;
-let myDeck = JSON.parse(localStorage.getItem("myTagDeck_v3")) || tagDatabase.map(t => t.tagNo);
+let myDeck = JSON.parse(localStorage.getItem("myTagDeck_v4")) || tagDatabase.map(t => t.tagNo);
 
 function getImgUrl(dex) {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${dex}.png`;
@@ -472,7 +485,6 @@ function getMultiplier(attackType, defenseTypes) {
   return mult;
 }
 
-// 탄 변경
 function setSeries(series) {
   selectedSeries = series;
   ['btnSeriesAll', 'btnSeries1', 'btnSeries2'].forEach(id => document.getElementById(id).classList.remove('active'));
@@ -482,7 +494,6 @@ function setSeries(series) {
   syncBossSelection();
 }
 
-// 성급 변경
 function setStar(star) {
   selectedStar = star;
   ['btnStarAll', 'btnStar6', 'btnStar5'].forEach(id => document.getElementById(id).classList.remove('active'));
@@ -492,7 +503,6 @@ function setStar(star) {
   syncBossSelection();
 }
 
-// 보스 리스트 갱신 후 보스 타겟 동기화
 function syncBossSelection() {
   const filtered = getFilteredBosses();
   if (filtered.length > 0 && !filtered.some(p => p.tagNo === currentBossTagNo)) {
@@ -546,6 +556,7 @@ function renderBossStatus() {
       <div style="font-weight:bold; font-size:0.95rem;">
         <span class="star-mini-badge ${boss.star === 6 ? 'badge-star6':'badge-star5'}" style="position:static; margin-right:4px;">★${boss.star}</span>
         ${boss.name} <span style="color:var(--text-muted); font-size:0.75rem;">[${boss.series}탄]</span>
+        <span class="atk-stat-badge" style="margin-left:4px;">공격력 ${boss.atk}</span>
       </div>
       <div style="margin: 3px 0;">
         ${boss.types.map(t => `<span class="type-badge type-${t}">${t}</span>`).join(' ')}
@@ -557,6 +568,7 @@ function renderBossStatus() {
   `;
 }
 
+// 상성 점수 계산 (공격 배율 최우선 + 공격력 높은 순 정렬)
 function calculateAdvantage() {
   const boss = tagDatabase.find(p => p.tagNo === currentBossTagNo) || tagDatabase[0];
   const onlyMyDeck = document.getElementById("onlyMyDeckToggle").checked;
@@ -569,8 +581,12 @@ function calculateAdvantage() {
   const scored = candidates.map(my => {
     const atkMult = getMultiplier(my.moveType, boss.types);
     const defMult = getMultiplier(boss.moveType, my.types);
-    // 공격 2배 가중치 + 보스 공격 경감도 + 6성 스펙 보정(0.4)
-    let score = (atkMult * 3.0) + (2.0 / (defMult || 0.25)) + (my.star === 6 ? 0.4 : 0);
+    
+    // 점수 공식: 
+    // 1순위: 상성 공격 배율 (2배면 10,000점 부여하여 무조건 1배보다 앞섬)
+    // 2순위: 실제 공격력 스탯 (공격력이 높을수록 우선 추천)
+    // 3순위: 방어력/내성 보정
+    let score = (atkMult * 10000) + (my.atk * 10) + (20 / (defMult || 0.25));
 
     return { ...my, atkMult, defMult, score };
   });
@@ -600,11 +616,12 @@ function calculateAdvantage() {
           ${isTopPick ? `<span class="party-tag">${idx + 1}번 타자</span>` : ''}
           <span class="star-mini-badge ${p.star === 6 ? 'badge-star6':'badge-star5'}" style="position:static;">★${p.star}</span>
           ${p.name}
-          <span style="font-size:0.68rem; color:var(--text-muted);">[${p.series}탄]</span>
+          <span class="atk-stat-badge">공격 ${p.atk}</span>
         </div>
         <div class="rec-badge-group">
           <span class="tag-badge badge-atk">${atkDesc}</span>
           <span class="tag-badge badge-def">${defDesc}</span>
+          <span style="font-size:0.65rem; color:var(--text-muted); line-height:1.6;">[${p.series}탄]</span>
         </div>
       </div>
     `;
@@ -612,7 +629,6 @@ function calculateAdvantage() {
   });
 }
 
-// 내 태그 보관함 필터
 function setDeckFilter(star) {
   selectedDeckFilter = star;
   ['btnDeckAll', 'btnDeck6', 'btnDeck5'].forEach(id => document.getElementById(id).classList.remove('active'));
@@ -638,6 +654,7 @@ function renderDeckManager() {
       <span class="star-mini-badge ${p.star === 6 ? 'badge-star6':'badge-star5'}">★${p.star}</span>
       <img src="${getImgUrl(p.dex)}" alt="${p.name}">
       <span>${p.name}</span>
+      <span class="atk-sub">공 ${p.atk}</span>
     `;
     grid.appendChild(item);
   });
@@ -649,7 +666,7 @@ function toggleDeckItem(tagNo) {
   } else {
     myDeck.push(tagNo);
   }
-  localStorage.setItem("myTagDeck_v3", JSON.stringify(myDeck));
+  localStorage.setItem("myTagDeck_v4", JSON.stringify(myDeck));
   renderDeckManager();
   calculateAdvantage();
 }
