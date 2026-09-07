@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>포켓몬 태그스타 서포터</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --primary: #fbbf24;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Pretendard, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin: 0;
+      color: var(--primary);
+    }
+    p.sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+    }
+    label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 8px;
+    }
+    select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      background: #334155;
+      color: #fff;
+      border: 1px solid #475569;
+      font-size: 1rem;
+      outline: none;
+    }
+    .boss-preview {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .type-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #fff;
+    }
+    /* 타입 색상 */
+    .type-불꽃 { background: #ef4444; }
+    .type-물 { background: #3b82f6; }
+    .type-풀 { background: #22c55e; }
+    .type-전기 { background: #eab308; color: #000; }
+    .type-얼음 { background: #06b6d4; }
+    .type-격투 { background: #b91c1c; }
+    .type-독 { background: #a855f7; }
+    .type-땅 { background: #d97706; }
+    .type-비행 { background: #818cf8; }
+    .type-에스퍼 { background: #ec4899; }
+    .type-벌레 { background: #84cc16; }
+    .type-바위 { background: #78716c; }
+    .type-고스트 { background: #6b21a8; }
+    .type-드래곤 { background: #4f46e5; }
+    .type-악 { background: #3f3f46; }
+    .type-강철 { background: #64748b; }
+    .type-페어리 { background: #f472b6; }
+    .type-노말 { background: #9ca3af; }
+
+    .recommend-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #334155;
+    }
+    .recommend-item:last-child {
+      border-bottom: none;
+    }
+    .rec-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .rec-name {
+      font-weight: bold;
+      font-size: 1rem;
+    }
+    .rec-tag {
+      font-size: 0.75rem;
+      color: var(--primary);
+    }
+    .score-badge {
+      background: #059669;
+      color: #fff;
+      font-size: 0.8rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-weight: bold;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>포켓몬 태그스타 서포터</h1>
+    <p class="sub">상대 보스를 고르면 최적의 태그를 추천합니다</p>
+  </header>
+
+  <div class="card">
+    <label for="bossSelect">잡고 싶은 보스 포켓몬 선택</label>
+    <select id="bossSelect" onchange="calculateAdvantage()">
+      <!-- JS에서 옵션 추가 -->
+    </select>
+    <div id="bossInfo" class="boss-preview"></div>
+  </div>
+
+  <div class="card">
+    <label>추천 출전 태그</label>
+    <div id="recommendList"></div>
+  </div>
+</div>
+
+<script>
+// 1. 타입 상성표 (공격 타입 -> 수비 타입에 주는 배율)
+const typeChart = {
+  "노말": { "바위": 0.5, "고스트": 0, "강철": 0.5 },
+  "불꽃": { "불꽃": 0.5, "물": 0.5, "풀": 2, "얼음": 2, "벌레": 2, "바위": 0.5, "드래곤": 0.5, "강철": 2 },
+  "물": { "불꽃": 2, "물": 0.5, "풀": 0.5, "땅": 2, "바위": 2, "드래곤": 0.5 },
+  "전기": { "물": 2, "전기": 0.5, "풀": 0.5, "땅": 0, "비행": 2, "드래곤": 0.5 },
+  "풀": { "불꽃": 0.5, "물": 2, "풀": 0.5, "독": 0.5, "땅": 2, "비행": 0.5, "벌레": 0.5, "바위": 2, "드래곤": 0.5, "강철": 0.5 },
+  "얼음": { "불꽃": 0.5, "물": 0.5, "풀": 2, "얼음": 0.5, "땅": 2, "비행": 2, "드래곤": 2, "강철": 0.5 },
+  "격투": { "노말": 2, "얼음": 2, "독": 0.5, "비행": 0.5, "에스퍼": 0.5, "벌레": 0.5, "바위": 2, "고스트": 0, "악": 2, "강철": 2, "페어리": 0.5 },
+  "독": { "풀": 2, "독": 0.5, "땅": 0.5, "바위": 0.5, "고스트": 0.5, "강철": 0, "페어리": 2 },
+  "땅": { "불꽃": 2, "전기": 2, "풀": 0.5, "독": 2, "비행": 0, "벌레": 0.5, "바위": 2, "강철": 2 },
+  "비행": { "전기": 0.5, "풀": 2, "격투": 2, "벌레": 2, "바위": 0.5, "강철": 0.5 },
+  "에스퍼": { "격투": 2, "독": 2, "에스퍼": 0.5, "악": 0, "강철": 0.5 },
+  "벌레": { "불꽃": 0.5, "풀": 2, "격투": 0.5, "독": 0.5, "비행": 0.5, "에스퍼": 2, "고스트": 0.5, "강철": 0.5, "페어리": 0.5 },
+  "바위": { "불꽃": 2, "얼음": 2, "격투": 0.5, "땅": 0.5, "비행": 2, "벌레": 2, "강철": 0.5 },
+  "고스트": { "노말": 0, "에스퍼": 2, "고스트": 2, "악": 0.5 },
+  "드래곤": { "드래곤": 2, "강철": 0.5, "페어리": 0 },
+  "악": { "격투": 0.5, "에스퍼": 2, "고스트": 2, "악": 0.5, "페어리": 0.5 },
+  "강철": { "불꽃": 0.5, "물": 0.5, "전기": 0.5, "얼음": 2, "바위": 2, "강철": 0.5, "페어리": 2 },
+  "페어리": { "불꽃": 0.5, "격투": 2, "독": 0.5, "드래곤": 2, "악": 2, "강철": 0.5 }
+};
+
+// 2. 태그스타 주요 포켓몬 DB (1탄/핵심 포켓몬 예시)
+const tagDatabase = [
+  { id: "1-001", star: 6, name: "자시안", types: ["페어리", "강철"], moveType: "강철", moveName: "거수참" },
+  { id: "1-002", star: 6, name: "자마젠타", types: ["격투", "강철"], moveType: "강철", moveName: "거수탄" },
+  { id: "1-003", star: 6, name: "가이오가", types: ["물"], moveType: "물", moveName: "하이드로펌프" },
+  { id: "1-004", star: 6, name: "그란돈", types: ["땅"], moveType: "땅", moveName: "지진" },
+  { id: "1-005", star: 6, name: "레쿠쟈", types: ["드래곤", "비행"], moveType: "드래곤", moveName: "유성군" },
+  { id: "1-006", star: 6, name: "이상해꽃", types: ["풀", "독"], moveType: "풀", moveName: "리프스톰" },
+  { id: "1-007", star: 6, name: "리자몽", types: ["불꽃", "비행"], moveType: "불꽃", moveName: "화염방사" },
+  { id: "1-008", star: 6, name: "거북왕", types: ["물"], moveType: "물", moveName: "하이드로펌프" },
+  { id: "1-009", star: 6, name: "알로라 나인테일", types: ["얼음", "페어리"], moveType: "얼음", moveName: "눈보라" },
+  { id: "1-010", star: 6, name: "피카츄", types: ["전기"], moveType: "전기", moveName: "10만볼트" },
+  { id: "1-011", star: 5, name: "고릴타", types: ["풀"], moveType: "풀", moveName: "드럼어택" },
+  { id: "1-012", star: 5, name: "에이스번", types: ["불꽃"], moveType: "불꽃", moveName: "화염볼" },
+  { id: "1-013", star: 5, name: "인텔리레온", types: ["물"], moveType: "물", moveName: "노려쏘기" },
+  { id: "1-014", star: 5, name: "창파나이트", types: ["격투"], moveType: "격투", moveName: "스타어설트" }
+];
+
+// 상성 배율 구하기
+function getMultiplier(attackType, defenseTypes) {
+  let mult = 1.0;
+  defenseTypes.forEach(def => {
+    if (typeChart[attackType] && typeChart[attackType][def] !== undefined) {
+      mult *= typeChart[attackType][def];
+    }
+  });
+  return mult;
+}
+
+// 셀렉트 박스 세팅
+const bossSelect = document.getElementById("bossSelect");
+tagDatabase.forEach((p, idx) => {
+  const opt = document.createElement("option");
+  opt.value = idx;
+  opt.textContent = `★${p.star} ${p.name} (${p.types.join('/')})`;
+  bossSelect.appendChild(opt);
+});
+
+// 추천 알고리즘 계산
+function calculateAdvantage() {
+  const boss = tagDatabase[bossSelect.value];
+  
+  // 보스 정보 표시
+  const bossInfo = document.getElementById("bossInfo");
+  bossInfo.innerHTML = `
+    <span>타입:</span>
+    ${boss.types.map(t => `<span class="type-badge type-${t}">${t}</span>`).join(' ')}
+    <span style="font-size:0.85rem; color: #94a3b8; margin-left: 8px;">주 기술: ${boss.moveName} (${boss.moveType})</span>
+  `;
+
+  // 내 포켓몬 점수 계산
+  const scoredList = tagDatabase.map(myTag => {
+    // 1. 내가 때릴 때 배율 (보스 방어 타입 기준)
+    const attackMult = getMultiplier(myTag.moveType, boss.types);
+    
+    // 2. 상대 기술을 내가 맞을 때 배율 (내 방어 타입 기준)
+    const defenseMult = getMultiplier(boss.moveType, myTag.types);
+
+    // 점수 공식: 공격 배율 높을수록(+), 받는 피해 적을수록(+)
+    // 공격 2배(2.0), 보스 공격 반감(0.5)일 때 최고점
+    let score = (attackMult * 2.0) + (2.0 / (defenseMult || 0.25));
+    if (myTag.star === 6) score += 0.5; // 슈퍼스타 가산점
+
+    return {
+      ...myTag,
+      attackMult,
+      defenseMult,
+      score
+    };
+  });
+
+  // 점수 순 정렬
+  scoredList.sort((a, b) => b.score - a.score);
+
+  // 상위 추천 포켓몬 렌더링
+  const recList = document.getElementById("recommendList");
+  recList.innerHTML = "";
+  
+  scoredList.slice(0, 5).forEach(item => {
+    const atkEffect = item.attackMult >= 2 ? "매우 유리(2배)" : item.attackMult === 1 ? "보통" : "비효율";
+    const defEffect = item.defenseMult <= 0.5 ? "방어 우수(반감)" : item.defenseMult === 1 ? "보통" : "피해 주의";
+
+    const div = document.createElement("div");
+    div.classList.add("recommend-item");
+    div.innerHTML = `
+      <div class="rec-info">
+        <div class="rec-name">★${item.star} ${item.name} <span class="type-badge type-${item.moveType}">${item.moveType}</span></div>
+        <div class="rec-tag">기술: ${item.moveName} · 공격: ${atkEffect} / 수비: ${defEffect}</div>
+      </div>
+      <div class="score-badge">추천도 ${Math.round(item.score * 10)}점</div>
+    `;
+    recList.appendChild(div);
+  });
+}
+
+// 최초 실행
+calculateAdvantage();
+</script>
+</body>
+</html>
