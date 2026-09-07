@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>한국 포켓몬 태그스타 상성 계산기</title>
+  <title>한국 포켓몬 태그스타 상성기</title>
   <style>
     :root {
       --bg: #0b0f19;
       --card-bg: #1e293b;
       --card-inner: #0f172a;
       --accent: #fbbf24;
+      --star6: #ef4444;
+      --star5: #f59e0b;
       --accent-glow: rgba(251, 191, 36, 0.25);
       --text: #f8fafc;
       --text-muted: #94a3b8;
@@ -23,50 +25,55 @@
       color: var(--text);
       display: flex;
       justify-content: center;
-      padding: 12px;
+      padding: 10px;
     }
     .container { width: 100%; max-width: 480px; }
-    header { text-align: center; margin: 8px 0 14px; }
+    header { text-align: center; margin: 6px 0 12px; }
     h1 {
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       margin: 0;
       color: var(--accent);
       text-shadow: 0 0 12px var(--accent-glow);
     }
-    p.sub { font-size: 0.78rem; color: var(--text-muted); margin: 4px 0 0; }
+    p.sub { font-size: 0.75rem; color: var(--text-muted); margin: 3px 0 0; }
     
     .card {
       background: var(--card-bg);
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 12px;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
       border: 1px solid var(--border);
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     .section-title {
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    /* 1탄 / 2탄 탭 */
-    .series-tabs {
+    /* 필터 버튼 그룹 */
+    .filter-group {
       display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .btn-row {
+      display: flex;
+      gap: 6px;
     }
     .tab-btn {
       flex: 1;
-      padding: 8px 0;
+      padding: 7px 0;
       border-radius: 8px;
       border: 1px solid var(--border);
       background: var(--card-inner);
       color: var(--text-muted);
       font-weight: bold;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       cursor: pointer;
       transition: 0.2s;
     }
@@ -74,24 +81,22 @@
       background: var(--accent);
       color: #000;
       border-color: var(--accent);
-      box-shadow: 0 0 8px var(--accent-glow);
     }
 
-    /* 검색창 */
     .search-input {
       width: 100%;
-      padding: 9px 12px;
+      padding: 8px 12px;
       border-radius: 8px;
       background: var(--card-inner);
       color: #fff;
       border: 1px solid var(--border);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       outline: none;
       margin-bottom: 8px;
     }
     .search-input:focus { border-color: var(--accent); }
 
-    /* 보스 스크롤 바 */
+    /* 보스 가로 스크롤 */
     .boss-scroll {
       display: flex;
       gap: 8px;
@@ -101,49 +106,61 @@
     }
     .boss-scroll::-webkit-scrollbar { display: none; }
     .boss-chip {
-      flex: 0 0 78px;
+      flex: 0 0 74px;
       background: var(--card-inner);
       border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 6px 4px;
+      border-radius: 10px;
+      padding: 5px 3px;
       text-align: center;
       cursor: pointer;
       transition: 0.2s;
+      position: relative;
     }
     .boss-chip.active {
       border-color: var(--accent);
       background: #27272a;
       box-shadow: 0 0 10px var(--accent-glow);
     }
-    .boss-chip img { width: 48px; height: 48px; object-fit: contain; }
+    .boss-chip img { width: 44px; height: 44px; object-fit: contain; }
     .boss-chip .chip-name {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-top: 3px;
+      margin-top: 2px;
     }
+    .star-mini-badge {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      font-size: 0.6rem;
+      padding: 1px 3px;
+      border-radius: 3px;
+      font-weight: bold;
+    }
+    .badge-star6 { background: var(--star6); color: #fff; }
+    .badge-star5 { background: var(--star5); color: #000; }
 
-    /* 보스 상태창 */
+    /* 보스 상세 */
     .boss-status {
       background: var(--card-inner);
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 10px 12px;
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-top: 8px;
+      margin-top: 6px;
     }
-    .boss-status img { width: 56px; height: 56px; object-fit: contain; }
+    .boss-status img { width: 54px; height: 54px; object-fit: contain; }
     .boss-details { flex: 1; }
 
     /* 타입 뱃지 */
     .type-badge {
       display: inline-block;
-      padding: 2px 6px;
-      border-radius: 5px;
-      font-size: 0.72rem;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 0.68rem;
       font-weight: bold;
       color: #fff;
     }
@@ -167,21 +184,12 @@
     .type-노말 { background: #9ca3af; }
 
     /* 추천 리스트 */
-    .party-tag {
-      background: #dc2626;
-      color: #fff;
-      font-size: 0.65rem;
-      padding: 2px 5px;
-      border-radius: 4px;
-      font-weight: bold;
-      margin-right: 4px;
-    }
     .rec-item {
       background: var(--card-inner);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 8px;
+      border-radius: 10px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -190,53 +198,61 @@
       border-color: var(--accent);
       background: linear-gradient(145deg, #1e293b, #172033);
     }
-    .rec-item img { width: 50px; height: 50px; object-fit: contain; }
+    .rec-item img { width: 46px; height: 46px; object-fit: contain; }
     .rec-main { flex: 1; }
     .rec-title {
       font-weight: bold;
-      font-size: 0.95rem;
+      font-size: 0.88rem;
       display: flex;
       align-items: center;
       gap: 4px;
     }
+    .party-tag {
+      background: #dc2626;
+      color: #fff;
+      font-size: 0.62rem;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
     .rec-badge-group {
-      margin-top: 4px;
+      margin-top: 3px;
       display: flex;
       gap: 4px;
       flex-wrap: wrap;
     }
     .tag-badge {
-      font-size: 0.7rem;
-      padding: 2px 5px;
-      border-radius: 4px;
+      font-size: 0.66rem;
+      padding: 1px 4px;
+      border-radius: 3px;
       font-weight: 600;
     }
     .badge-atk { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
     .badge-def { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
 
-    /* 토글 */
+    /* 토글 스위치 */
     .toggle-wrap {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.78rem;
+      gap: 5px;
+      font-size: 0.75rem;
       color: var(--text-muted);
     }
     .toggle-switch {
       position: relative;
       display: inline-block;
-      width: 38px;
-      height: 20px;
+      width: 36px;
+      height: 18px;
     }
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
     .slider {
       position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
       background-color: var(--border);
-      border-radius: 20px;
+      border-radius: 18px;
       transition: .3s;
     }
     .slider:before {
-      position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px;
+      position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px;
       background-color: white;
       border-radius: 50%;
       transition: .3s;
@@ -244,36 +260,37 @@
     input:checked + .slider { background-color: var(--accent); }
     input:checked + .slider:before { transform: translateX(18px); }
 
-    /* 보관함 */
+    /* 보유 태그 관리 드롭다운 */
     details {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 12px;
+      border-radius: 14px;
+      padding: 10px;
     }
     summary {
       font-weight: bold;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       cursor: pointer;
       color: var(--text-muted);
     }
     .deck-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      margin-top: 10px;
-      max-height: 260px;
+      gap: 5px;
+      margin-top: 8px;
+      max-height: 250px;
       overflow-y: auto;
     }
     .deck-item {
       background: var(--card-inner);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 2px;
+      border-radius: 6px;
+      padding: 5px 2px;
       text-align: center;
       cursor: pointer;
       user-select: none;
       opacity: 0.35;
+      position: relative;
       transition: 0.2s;
     }
     .deck-item.owned {
@@ -281,10 +298,10 @@
       border-color: #22c55e;
       background: rgba(34, 197, 94, 0.1);
     }
-    .deck-item img { width: 36px; height: 36px; object-fit: contain; }
+    .deck-item img { width: 34px; height: 34px; object-fit: contain; }
     .deck-item span {
       display: block;
-      font-size: 0.65rem;
+      font-size: 0.63rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -295,33 +312,40 @@
 
 <div class="container">
   <header>
-    <h1>한국 포켓몬 태그스타 상성기</h1>
-    <p class="sub">1탄·2탄 공식 슈퍼스타(★6) 전용</p>
+    <h1>포켓몬 태그스타 상성기 PRO</h1>
+    <p class="sub">1탄·2탄 (★6 슈퍼스타 & ★5 스타 전 50종)</p>
   </header>
 
-  <!-- 보스 영역 -->
+  <!-- 보스 선택 카드 -->
   <div class="card">
     <div class="section-title">
       <span>배틀 상대 보스 포켓몬</span>
-      <span id="bossCount" style="font-size: 0.75rem; color: var(--text-muted);"></span>
+      <span id="bossCount" style="font-size: 0.72rem; color: var(--text-muted);"></span>
     </div>
 
-    <!-- 탄 선택 탭 -->
-    <div class="series-tabs">
-      <button class="tab-btn active" onclick="setSeries('all', this)">전체보기</button>
-      <button class="tab-btn" onclick="setSeries('1', this)">1탄 (10종)</button>
-      <button class="tab-btn" onclick="setSeries('2', this)">2탄 (10종)</button>
+    <!-- 탄 & 성급 2중 필터 -->
+    <div class="filter-group">
+      <div class="btn-row">
+        <button class="tab-btn active" id="btnSeriesAll" onclick="setSeries('all')">전체 탄</button>
+        <button class="tab-btn" id="btnSeries1" onclick="setSeries('1')">1탄</button>
+        <button class="tab-btn" id="btnSeries2" onclick="setSeries('2')">2탄</button>
+      </div>
+      <div class="btn-row">
+        <button class="tab-btn active" id="btnStarAll" onclick="setStar('all')">★전체</button>
+        <button class="tab-btn" id="btnStar6" onclick="setStar(6)">★6 슈퍼스타</button>
+        <button class="tab-btn" id="btnStar5" onclick="setStar(5)">★5 스타</button>
+      </div>
     </div>
 
-    <input type="text" id="bossSearch" class="search-input" placeholder="이름으로 찾기 (예: 미라이돈, 코라이돈)..." oninput="renderBossList()">
+    <input type="text" id="bossSearch" class="search-input" placeholder="이름으로 찾기 (예: 팬텀, 피카츄)..." oninput="renderBossList()">
     <div class="boss-scroll" id="bossScroll"></div>
     <div class="boss-status" id="bossStatus"></div>
   </div>
 
-  <!-- 추천 영역 -->
+  <!-- 추천 출전 카드 -->
   <div class="card">
     <div class="section-title">
-      <span>추천 출전 태그 (1~3번 타자 조합)</span>
+      <span>추천 출전 태그 (1~3번 추천)</span>
       <div class="toggle-wrap">
         <span>내 태그만</span>
         <label class="toggle-switch">
@@ -333,10 +357,14 @@
     <div id="recommendList"></div>
   </div>
 
-  <!-- 보관함 -->
+  <!-- 보유 태그 보관함 -->
   <details>
     <summary>📦 내 보유 태그 관리 (<span id="myDeckCount">0</span>마리 등록됨)</summary>
-    <p style="font-size: 0.72rem; color: var(--text-muted); margin: 6px 0 0;">터치하여 내가 가진 태그를 활성화하세요. (자동 저장)</p>
+    <div class="btn-row" style="margin-top:8px;">
+      <button class="tab-btn active" id="btnDeckAll" onclick="setDeckFilter('all')">전체</button>
+      <button class="tab-btn" id="btnDeck6" onclick="setDeckFilter(6)">★6</button>
+      <button class="tab-btn" id="btnDeck5" onclick="setDeckFilter(5)">★5</button>
+    </div>
     <div class="deck-grid" id="deckGrid"></div>
   </details>
 </div>
@@ -363,36 +391,72 @@ const typeChart = {
   "페어리": { "불꽃": 0.5, "격투": 2, "독": 0.5, "드래곤": 2, "악": 2, "강철": 0.5 }
 };
 
-// 한국 포켓몬 태그스타 공식 슈퍼스타(★6) 데이터베이스
+// 1탄, 2탄 전체 50종 데이터베이스 (이미지 기준 정확 반영)
 const tagDatabase = [
-  // --- 1탄 ---
-  { tagNo: "1-1-001", series: "1", dex: 150, name: "뮤츠", types: ["에스퍼"], moveType: "에스퍼", moveName: "사이코키네시스" },
-  { tagNo: "1-1-002", series: "1", dex: 151, name: "뮤", types: ["에스퍼"], moveType: "에스퍼", moveName: "사이코키네시스" },
-  { tagNo: "1-1-003", series: "1", dex: 888, name: "자시안", types: ["페어리", "강철"], moveType: "강철", moveName: "거수참" },
-  { tagNo: "1-1-004", series: "1", dex: 889, name: "자마젠타", types: ["격투", "강철"], moveType: "강철", moveName: "거수탄" },
-  { tagNo: "1-1-005", series: "1", dex: 248, name: "마기라스", types: ["바위", "악"], moveType: "바위", moveName: "스톤에지" },
-  { tagNo: "1-1-006", series: "1", dex: 376, name: "메타그로스", types: ["강철", "에스퍼"], moveType: "강철", moveName: "코멧펀치" },
-  { tagNo: "1-1-007", series: "1", dex: 1008, name: "미라이돈", types: ["전기", "드래곤"], moveType: "전기", moveName: "이낵셀드라이브" },
-  { tagNo: "1-1-008", series: "1", dex: 3, name: "이상해꽃", types: ["풀", "독"], moveType: "풀", moveName: "하드플랜트" },
-  { tagNo: "1-1-009", series: "1", dex: 6, name: "리자몽", types: ["불꽃", "비행"], moveType: "불꽃", moveName: "블러스트번" },
-  { tagNo: "1-1-010", series: "1", dex: 9, name: "거북왕", types: ["물"], moveType: "물", moveName: "하이드로캐논" },
+  // ================= 1탄 ★6 (10종) =================
+  { tagNo: "1-1-001", series: "1", star: 6, dex: 150, name: "뮤츠", types: ["에스퍼"], moveType: "에스퍼" },
+  { tagNo: "1-1-002", series: "1", star: 6, dex: 151, name: "뮤", types: ["에스퍼"], moveType: "에스퍼" },
+  { tagNo: "1-1-003", series: "1", star: 6, dex: 888, name: "자시안", types: ["페어리", "강철"], moveType: "강철" },
+  { tagNo: "1-1-004", series: "1", star: 6, dex: 889, name: "자마젠타", types: ["격투", "강철"], moveType: "강철" },
+  { tagNo: "1-1-005", series: "1", star: 6, dex: 248, name: "마기라스", types: ["바위", "악"], moveType: "바위" },
+  { tagNo: "1-1-006", series: "1", star: 6, dex: 376, name: "메타그로스", types: ["강철", "에스퍼"], moveType: "강철" },
+  { tagNo: "1-1-007", series: "1", star: 6, dex: 1008, name: "미라이돈", types: ["전기", "드래곤"], moveType: "전기" },
+  { tagNo: "1-1-008", series: "1", star: 6, dex: 3, name: "이상해꽃", types: ["풀", "독"], moveType: "풀" },
+  { tagNo: "1-1-009", series: "1", star: 6, dex: 6, name: "리자몽", types: ["불꽃", "비행"], moveType: "불꽃" },
+  { tagNo: "1-1-010", series: "1", star: 6, dex: 9, name: "거북왕", types: ["물"], moveType: "물" },
 
-  // --- 2탄 ---
-  { tagNo: "1-2-001", series: "2", dex: 382, name: "가이오가", types: ["물"], moveType: "물", moveName: "근원의파동" },
-  { tagNo: "1-2-002", series: "2", dex: 383, name: "그란돈", types: ["땅"], moveType: "땅", moveName: "단애의칼" },
-  { tagNo: "1-2-003", series: "2", dex: 1007, name: "코라이돈", types: ["격투", "드래곤"], moveType: "격투", moveName: "액셀브레이크" },
-  { tagNo: "1-2-004", series: "2", dex: 25, name: "피카츄", types: ["전기"], moveType: "전기", moveName: "10만볼트" },
-  { tagNo: "1-2-005", series: "2", dex: 143, name: "잠만보", types: ["노말"], moveType: "노말", moveName: "누르기" },
-  { tagNo: "1-2-006", series: "2", dex: 784, name: "짜랑고우거", types: ["드래곤", "격투"], moveType: "드래곤", moveName: "스케일샷" },
-  { tagNo: "1-2-007", series: "2", dex: 282, name: "가디안", types: ["에스퍼", "페어리"], moveType: "페어리", moveName: "문포스" },
-  { tagNo: "1-2-008", series: "2", dex: 643, name: "레시라무", types: ["드래곤", "불꽃"], moveType: "불꽃", moveName: "크로스플레임" },
-  { tagNo: "1-2-009", series: "2", dex: 644, name: "제크로무", types: ["드래곤", "전기"], moveType: "전기", moveName: "크로스썬더" },
-  { tagNo: "1-2-010", series: "2", dex: 646, name: "큐레무", types: ["드래곤", "얼음"], moveType: "얼음", moveName: "눈보라" }
+  // ================= 1탄 ★5 (15종) =================
+  { tagNo: "1-1-011", series: "1", star: 5, dex: 134, name: "샤미드", types: ["물"], moveType: "물" },
+  { tagNo: "1-1-012", series: "1", star: 5, dex: 136, name: "부스터", types: ["불꽃"], moveType: "불꽃" },
+  { tagNo: "1-1-013", series: "1", star: 5, dex: 197, name: "블래키", types: ["악"], moveType: "악" },
+  { tagNo: "1-1-014", series: "1", star: 5, dex: 471, name: "글레이시아", types: ["얼음"], moveType: "얼음" },
+  { tagNo: "1-1-015", series: "1", star: 5, dex: 18, name: "피죤투", types: ["노말", "비행"], moveType: "비행" },
+  { tagNo: "1-1-016", series: "1", star: 5, dex: 94, name: "팬텀", types: ["고스트", "독"], moveType: "고스트" },
+  { tagNo: "1-1-017", series: "1", star: 5, dex: 59, name: "윈디", types: ["불꽃"], moveType: "불꽃" },
+  { tagNo: "1-1-018", series: "1", star: 5, dex: 464, name: "거대코뿌리", types: ["땅", "바위"], moveType: "땅" },
+  { tagNo: "1-1-019", series: "1", star: 5, dex: 25, name: "피카츄", types: ["전기"], moveType: "전기" },
+  { tagNo: "1-1-020", series: "1", star: 5, dex: 330, name: "플라이곤", types: ["땅", "드래곤"], moveType: "땅" },
+  { tagNo: "1-1-021", series: "1", star: 5, dex: 812, name: "고릴타", types: ["풀"], moveType: "풀" },
+  { tagNo: "1-1-022", series: "1", star: 5, dex: 815, name: "에이스번", types: ["불꽃"], moveType: "불꽃" },
+  { tagNo: "1-1-023", series: "1", star: 5, dex: 818, name: "인텔리레온", types: ["물"], moveType: "물" },
+  { tagNo: "1-1-024", series: "1", star: 5, dex: 862, name: "가로막구리", types: ["악", "노말"], moveType: "악" },
+  { tagNo: "1-1-025", series: "1", star: 5, dex: 647, name: "케르디오", types: ["물", "격투"], moveType: "물" },
+
+  // ================= 2탄 ★6 (10종) =================
+  { tagNo: "1-2-001", series: "2", star: 6, dex: 382, name: "가이오가", types: ["물"], moveType: "물" },
+  { tagNo: "1-2-002", series: "2", star: 6, dex: 383, name: "그란돈", types: ["땅"], moveType: "땅" },
+  { tagNo: "1-2-003", series: "2", star: 6, dex: 1007, name: "코라이돈", types: ["격투", "드래곤"], moveType: "격투" },
+  { tagNo: "1-2-004", series: "2", star: 6, dex: 25, name: "피카츄", types: ["전기"], moveType: "전기" },
+  { tagNo: "1-2-005", series: "2", star: 6, dex: 143, name: "잠만보", types: ["노말"], moveType: "노말" },
+  { tagNo: "1-2-006", series: "2", star: 6, dex: 784, name: "짜랑고우거", types: ["드래곤", "격투"], moveType: "드래곤" },
+  { tagNo: "1-2-007", series: "2", star: 6, dex: 282, name: "가디안", types: ["에스퍼", "페어리"], moveType: "페어리" },
+  { tagNo: "1-2-008", series: "2", star: 6, dex: 643, name: "레시라무", types: ["드래곤", "불꽃"], moveType: "불꽃" },
+  { tagNo: "1-2-009", series: "2", star: 6, dex: 644, name: "제크로무", types: ["드래곤", "전기"], moveType: "전기" },
+  { tagNo: "1-2-010", series: "2", star: 6, dex: 646, name: "큐레무", types: ["드래곤", "얼음"], moveType: "얼음" },
+
+  // ================= 2탄 ★5 (15종) =================
+  { tagNo: "1-2-011", series: "2", star: 5, dex: 135, name: "쥬피썬더", types: ["전기"], moveType: "전기" },
+  { tagNo: "1-2-012", series: "2", star: 5, dex: 196, name: "에브이", types: ["에스퍼"], moveType: "에스퍼" },
+  { tagNo: "1-2-013", series: "2", star: 5, dex: 470, name: "리피아", types: ["풀"], moveType: "풀" },
+  { tagNo: "1-2-014", series: "2", star: 5, dex: 700, name: "님피아", types: ["페어리"], moveType: "페어리" },
+  { tagNo: "1-2-015", series: "2", star: 5, dex: 448, name: "루카리오", types: ["격투", "강철"], moveType: "격투" },
+  { tagNo: "1-2-016", series: "2", star: 5, dex: 389, name: "토대부기", types: ["풀", "땅"], moveType: "풀" },
+  { tagNo: "1-2-017", series: "2", star: 5, dex: 392, name: "초염몽", types: ["불꽃", "격투"], moveType: "불꽃" },
+  { tagNo: "1-2-018", series: "2", star: 5, dex: 395, name: "엠페르트", types: ["물", "강철"], moveType: "물" },
+  { tagNo: "1-2-019", series: "2", star: 5, dex: 38, name: "알로라 나인테일", types: ["얼음", "페어리"], moveType: "얼음" },
+  { tagNo: "1-2-020", series: "2", star: 5, dex: 248, name: "마기라스", types: ["바위", "악"], moveType: "바위" },
+  { tagNo: "1-2-021", series: "2", star: 5, dex: 376, name: "메타그로스", types: ["강철", "에스퍼"], moveType: "강철" },
+  { tagNo: "1-2-022", series: "2", star: 5, dex: 841, name: "애프룡", types: ["풀", "드래곤"], moveType: "풀" },
+  { tagNo: "1-2-023", series: "2", star: 5, dex: 842, name: "단지래플", types: ["풀", "드래곤"], moveType: "풀" },
+  { tagNo: "1-2-024", series: "2", star: 5, dex: 869, name: "마휘핑", types: ["페어리"], moveType: "페어리" },
+  { tagNo: "1-2-025", series: "2", star: 5, dex: 834, name: "갈가부기", types: ["물", "바위"], moveType: "물" }
 ];
 
 let selectedSeries = "all";
+let selectedStar = "all";
+let selectedDeckFilter = "all";
 let currentBossTagNo = tagDatabase[0].tagNo;
-let myDeck = JSON.parse(localStorage.getItem("myTagDeck_v2")) || tagDatabase.map(t => t.tagNo);
+let myDeck = JSON.parse(localStorage.getItem("myTagDeck_v3")) || tagDatabase.map(t => t.tagNo);
 
 function getImgUrl(dex) {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${dex}.png`;
@@ -408,29 +472,50 @@ function getMultiplier(attackType, defenseTypes) {
   return mult;
 }
 
-function setSeries(series, btn) {
+// 탄 변경
+function setSeries(series) {
   selectedSeries = series;
-  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
+  ['btnSeriesAll', 'btnSeries1', 'btnSeries2'].forEach(id => document.getElementById(id).classList.remove('active'));
+  if(series === 'all') document.getElementById('btnSeriesAll').classList.add('active');
+  if(series === '1') document.getElementById('btnSeries1').classList.add('active');
+  if(series === '2') document.getElementById('btnSeries2').classList.add('active');
+  syncBossSelection();
+}
 
-  const firstInSeries = tagDatabase.find(p => series === "all" || p.series === series);
-  if (firstInSeries) currentBossTagNo = firstInSeries.tagNo;
+// 성급 변경
+function setStar(star) {
+  selectedStar = star;
+  ['btnStarAll', 'btnStar6', 'btnStar5'].forEach(id => document.getElementById(id).classList.remove('active'));
+  if(star === 'all') document.getElementById('btnStarAll').classList.add('active');
+  if(star === 6) document.getElementById('btnStar6').classList.add('active');
+  if(star === 5) document.getElementById('btnStar5').classList.add('active');
+  syncBossSelection();
+}
 
+// 보스 리스트 갱신 후 보스 타겟 동기화
+function syncBossSelection() {
+  const filtered = getFilteredBosses();
+  if (filtered.length > 0 && !filtered.some(p => p.tagNo === currentBossTagNo)) {
+    currentBossTagNo = filtered[0].tagNo;
+  }
   renderBossList();
   calculateAdvantage();
 }
 
-function renderBossList() {
+function getFilteredBosses() {
   const query = document.getElementById("bossSearch").value.trim().toLowerCase();
+  return tagDatabase.filter(p => {
+    const matchSeries = (selectedSeries === "all" || p.series === selectedSeries);
+    const matchStar = (selectedStar === "all" || p.star === selectedStar);
+    const matchName = p.name.toLowerCase().includes(query) || p.tagNo.includes(query);
+    return matchSeries && matchStar && matchName;
+  });
+}
+
+function renderBossList() {
   const scrollBox = document.getElementById("bossScroll");
   scrollBox.innerHTML = "";
-
-  const filtered = tagDatabase.filter(p => {
-    const matchSeries = (selectedSeries === "all" || p.series === selectedSeries);
-    const matchName = p.name.toLowerCase().includes(query) || p.tagNo.includes(query);
-    return matchSeries && matchName;
-  });
-
+  const filtered = getFilteredBosses();
   document.getElementById("bossCount").innerText = `${filtered.length}마리`;
 
   filtered.forEach(p => {
@@ -442,6 +527,7 @@ function renderBossList() {
       calculateAdvantage();
     };
     chip.innerHTML = `
+      <span class="star-mini-badge ${p.star === 6 ? 'badge-star6':'badge-star5'}">★${p.star}</span>
       <img src="${getImgUrl(p.dex)}" loading="lazy" alt="${p.name}">
       <div class="chip-name">${p.name}</div>
     `;
@@ -457,14 +543,15 @@ function renderBossStatus() {
   box.innerHTML = `
     <img src="${getImgUrl(boss.dex)}" alt="${boss.name}">
     <div class="boss-details">
-      <div style="font-weight:bold; font-size:1rem;">
-        <span style="color:var(--accent); font-size:0.8rem;">${boss.tagNo}</span> ★6 ${boss.name}
+      <div style="font-weight:bold; font-size:0.95rem;">
+        <span class="star-mini-badge ${boss.star === 6 ? 'badge-star6':'badge-star5'}" style="position:static; margin-right:4px;">★${boss.star}</span>
+        ${boss.name} <span style="color:var(--text-muted); font-size:0.75rem;">[${boss.series}탄]</span>
       </div>
-      <div style="margin: 4px 0;">
+      <div style="margin: 3px 0;">
         ${boss.types.map(t => `<span class="type-badge type-${t}">${t}</span>`).join(' ')}
       </div>
-      <div style="font-size:0.78rem; color:var(--text-muted);">
-        기술: <span style="color:#fff;">${boss.moveName}</span> (${boss.moveType})
+      <div style="font-size:0.75rem; color:var(--text-muted);">
+        기술 타입: <span class="type-badge type-${boss.moveType}">${boss.moveType}</span>
       </div>
     </div>
   `;
@@ -482,7 +569,8 @@ function calculateAdvantage() {
   const scored = candidates.map(my => {
     const atkMult = getMultiplier(my.moveType, boss.types);
     const defMult = getMultiplier(boss.moveType, my.types);
-    let score = (atkMult * 3.0) + (2.0 / (defMult || 0.25));
+    // 공격 2배 가중치 + 보스 공격 경감도 + 6성 스펙 보정(0.4)
+    let score = (atkMult * 3.0) + (2.0 / (defMult || 0.25)) + (my.star === 6 ? 0.4 : 0);
 
     return { ...my, atkMult, defMult, score };
   });
@@ -493,7 +581,7 @@ function calculateAdvantage() {
   recList.innerHTML = "";
 
   if (scored.length === 0) {
-    recList.innerHTML = `<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:0.85rem;">선택된 조건에 맞는 추천 태그가 없습니다.</div>`;
+    recList.innerHTML = `<div style="text-align:center; padding:16px; color:var(--text-muted); font-size:0.85rem;">조건에 맞는 태그가 없습니다.</div>`;
     return;
   }
 
@@ -502,16 +590,17 @@ function calculateAdvantage() {
     const div = document.createElement("div");
     div.className = `rec-item ${isTopPick ? 'top-pick' : ''}`;
 
-    const atkDesc = p.atkMult >= 2 ? "공격 2배 (효과 굉장)" : p.atkMult === 1 ? "공격 보통" : "공격 비효율";
-    const defDesc = p.defMult <= 0.5 ? "방어 우수 (상대 공격 반감)" : p.defMult === 1 ? "방어 보통" : "상대 역상성 주의";
+    const atkDesc = p.atkMult >= 2 ? "공격 2배 (효과발군)" : p.atkMult === 1 ? "공격 보통" : "공격 비효율";
+    const defDesc = p.defMult <= 0.5 ? "방어 우수 (상대공격 반감)" : p.defMult === 1 ? "방어 보통" : "역상성 주의!";
 
     div.innerHTML = `
       <img src="${getImgUrl(p.dex)}" alt="${p.name}">
       <div class="rec-main">
         <div class="rec-title">
           ${isTopPick ? `<span class="party-tag">${idx + 1}번 타자</span>` : ''}
-          ★6 ${p.name}
-          <span class="type-badge type-${p.moveType}" style="font-size:0.65rem;">${p.moveType}</span>
+          <span class="star-mini-badge ${p.star === 6 ? 'badge-star6':'badge-star5'}" style="position:static;">★${p.star}</span>
+          ${p.name}
+          <span style="font-size:0.68rem; color:var(--text-muted);">[${p.series}탄]</span>
         </div>
         <div class="rec-badge-group">
           <span class="tag-badge badge-atk">${atkDesc}</span>
@@ -523,19 +612,32 @@ function calculateAdvantage() {
   });
 }
 
+// 내 태그 보관함 필터
+function setDeckFilter(star) {
+  selectedDeckFilter = star;
+  ['btnDeckAll', 'btnDeck6', 'btnDeck5'].forEach(id => document.getElementById(id).classList.remove('active'));
+  if(star === 'all') document.getElementById('btnDeckAll').classList.add('active');
+  if(star === 6) document.getElementById('btnDeck6').classList.add('active');
+  if(star === 5) document.getElementById('btnDeck5').classList.add('active');
+  renderDeckManager();
+}
+
 function renderDeckManager() {
   const grid = document.getElementById("deckGrid");
   grid.innerHTML = "";
   document.getElementById("myDeckCount").innerText = myDeck.length;
 
-  tagDatabase.forEach(p => {
+  const filtered = tagDatabase.filter(p => selectedDeckFilter === "all" || p.star === selectedDeckFilter);
+
+  filtered.forEach(p => {
     const isOwned = myDeck.includes(p.tagNo);
     const item = document.createElement("div");
     item.className = `deck-item ${isOwned ? 'owned' : ''}`;
     item.onclick = () => toggleDeckItem(p.tagNo);
     item.innerHTML = `
+      <span class="star-mini-badge ${p.star === 6 ? 'badge-star6':'badge-star5'}">★${p.star}</span>
       <img src="${getImgUrl(p.dex)}" alt="${p.name}">
-      <span>[${p.series}탄] ${p.name}</span>
+      <span>${p.name}</span>
     `;
     grid.appendChild(item);
   });
@@ -547,7 +649,7 @@ function toggleDeckItem(tagNo) {
   } else {
     myDeck.push(tagNo);
   }
-  localStorage.setItem("myTagDeck_v2", JSON.stringify(myDeck));
+  localStorage.setItem("myTagDeck_v3", JSON.stringify(myDeck));
   renderDeckManager();
   calculateAdvantage();
 }
